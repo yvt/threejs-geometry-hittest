@@ -10,6 +10,7 @@ want to do some hit-test.
 Following objects are supported:
 
  * `Box3`
+ * `Sphere`
 
 Please feel free to make pull requests, if you feel you can make this library better!
 
