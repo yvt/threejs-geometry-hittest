@@ -12,6 +12,14 @@
   ],
   "author": "yvt <i@yvt.jp>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yvt/threejs-box-hittest"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yvt/threejs-box-hittest/issues"
+  },
   "dependencies": {
     "three": "^0.73.0"
   },
