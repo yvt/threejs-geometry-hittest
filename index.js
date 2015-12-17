@@ -9,8 +9,10 @@ var Geometry = three.Geometry;
 var norm = new three.Vector3();
 var t1 = new three.Vector3();
 var t2 = new three.Vector3();
+var depth = 0;
 
-function checkBoxSeparation(minX, minY, minZ, maxX, maxY, maxZ, norm, v1, v2, v3)
+// this function is 
+function checkBoxSeparation(phase, minX, minY, minZ, maxX, maxY, maxZ, norm, v1, v2, v3)
 {
 	var minQ, maxQ;
 	minQ = norm.x * (norm.x > 0 ? minX : maxX);
@@ -25,10 +27,20 @@ function checkBoxSeparation(minX, minY, minZ, maxX, maxY, maxZ, norm, v1, v2, v3
 	var q3 = norm.x * v3.x + norm.y * v3.y + norm.z * v3.z;
 	var vMinQ = Math.min(q1, q2, q3), vMaxQ = Math.max(q1, q2, q3);
 
-	return minQ > vMaxQ || maxQ < vMinQ;
+	if (phase === 0) {
+		// just check the collision
+		return minQ > vMaxQ || maxQ < vMinQ;
+	} else {
+		// compute penetration depth
+		var sq = 1 / norm.length();
+		if (!isFinite(sq)) {
+			return;
+		}
+		depth = Math.min(depth, (vMaxQ - minQ) * sq, (maxQ - vMinQ) * sq);
+	}
 }
 
-function geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+function geometryIntersectsBox3_PassThree(phase, minX, minY, minZ, maxX, maxY, maxZ, 
 	axis, v1, v2, v3, t1, t2)
 {
 	t1.subVectors(v1, v2);
@@ -45,7 +57,7 @@ function geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ,
 			break;
 	}
 
-	return checkBoxSeparation(minX, minY, minZ, maxX, maxY, maxZ, t1, v1, v2, v3);
+	return checkBoxSeparation(phase, minX, minY, minZ, maxX, maxY, maxZ, t1, v1, v2, v3);
 }
 
 function geometryIntersectsBox3(geo, box)
@@ -88,33 +100,57 @@ function geometryIntersectsBox3(geo, box)
 		t2.subVectors(v3, v1);
 		norm.crossVectors(t1, t2);
 
-		if (checkBoxSeparation(minX, minY, minZ, maxX, maxY, maxZ, 
+		if (checkBoxSeparation(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				norm, v1, v2, v3) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				0, v1, v2, v3, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				0, v1, v3, v2, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				0, v2, v3, v1, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				1, v1, v2, v3, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				1, v1, v3, v2, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				1, v2, v3, v1, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				2, v1, v2, v3, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				2, v1, v3, v2, t1, t2) ||
-			geometryIntersectsBox3_PassThree(minX, minY, minZ, maxX, maxY, maxZ, 
+			geometryIntersectsBox3_PassThree(0, minX, minY, minZ, maxX, maxY, maxZ, 
 				2, v2, v3, v1, t1, t2)) {
 			// never be intersecting
 			continue;
 		}
 
+		// compute depth
+		depth = Infinity;
+		checkBoxSeparation(1, minX, minY, minZ, maxX, maxY, maxZ, 
+				norm, v1, v2, v3);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			0, v1, v2, v3, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			0, v1, v3, v2, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			0, v2, v3, v1, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			1, v1, v2, v3, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			1, v1, v3, v2, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			1, v2, v3, v1, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			2, v1, v2, v3, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			2, v1, v3, v2, t1, t2);
+		geometryIntersectsBox3_PassThree(1, minX, minY, minZ, maxX, maxY, maxZ, 
+			2, v2, v3, v1, t1, t2);
+
 		// triangle touches the box
 		results.push({
-			faceIndex: fI
+			faceIndex: fI,
+			depth: depth
 		});
 
 	}
