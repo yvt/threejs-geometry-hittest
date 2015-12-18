@@ -1,6 +1,6 @@
 {
   "name": "threejs-geometry-hittest",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Checks whether a THREE.Geometry intersects with a primitive shape",
   "main": "index.js",
   "scripts": {
