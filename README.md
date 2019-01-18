@@ -2,6 +2,8 @@
 threejs-geometry-hittest
 ========================
 
+![](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg)
+
 This module provides a convenient method to check whether the given `Geometry` intersects
 with another object, in O(n) where n is the number of faces in the `Geometry`. This
 library could be useful for a project that don't need full-featured physics library but
@@ -19,7 +21,7 @@ Example
 
 ```js
 const three = require('three');
-const intersects = require('threejs-box-hittest').intersects;
+const intersects = require('threejs-geometry-hittest').intersects;
 
 // objects
 const geometry = new three.BoxGeometry(1, 1, 1);
